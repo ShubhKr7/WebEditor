@@ -3,13 +3,14 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "http": "^0.0.1-security",
-    "nodemon": "^3.1.10",
     "ws": "^8.18.3"
   },
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
   "scripts": {
     "start": "nodemon index.js"
   },
