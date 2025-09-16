@@ -8,7 +8,7 @@ import fs from "fs";
 import path from "path";
 
 let shellCwd = "D:/WebProjects/WebEditor/server"; // initial cwd for shells
-const terminals = {}; // id -> shell process
+const terminals = {}; // id -> stores shell process
 
 const app = express();
 
