@@ -10,7 +10,7 @@ window.process = process;
 export default function App() {
   const editorRef = useRef(null);
   const monacoInstance = useRef(null);
-  
+
   const [currentFile, setCurrentFile] = useState("/d/WebProjects/WebEditor/"); // default file path
   const [currentDir, setCurrentDir] = useState("");
   const [terminals, setTerminals] = useState([]);

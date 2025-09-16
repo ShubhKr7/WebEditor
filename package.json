@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "name": "webeditor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+  "server": "cd server && npm start", 
+  "client": "cd client && npm run dev", 
+  "start": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShubhKr7/WebEditor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShubhKr7/WebEditor/issues"
+  },
+  "homepage": "https://github.com/ShubhKr7/WebEditor#readme",
+  "description": ""
+}
