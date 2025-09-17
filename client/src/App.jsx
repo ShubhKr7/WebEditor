@@ -38,7 +38,7 @@ export default function App() {
     try {
       const fullPath = fileName;
       const res = await fetch(
-        `http://localhost:3001/api/open-file?path=${encodeURIComponent(
+        `https://webeditor-ci8d.onrender.com/api/open-file?path=${encodeURIComponent(
           fullPath
         )}`
       );
@@ -120,7 +120,7 @@ export default function App() {
   async function saveFile() {
     if (!currentFile) return;
     try {
-      const res = await fetch("http://localhost:3001/api/save-file", {
+      const res = await fetch("https://webeditor-ci8d.onrender.com/api/save-file", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function App() {
 
   function createTerminal() {
     const id = `term-${Date.now()}`;
-    const ws = new WebSocket(`ws://localhost:3001/?id=${id}`);
+    const ws = new WebSocket(`wss://webeditor-ci8d.onrender.com/?id=${id}`);
 
     const term = new Terminal({
       rows: 15,
