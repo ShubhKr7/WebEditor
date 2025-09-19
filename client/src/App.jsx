@@ -6,6 +6,8 @@ import "xterm/css/xterm.css";
 import path from "path-browserify";
 import process from "process";
 window.process = process;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
 export default function App() {
   const editorRef = useRef(null);
@@ -38,9 +40,7 @@ export default function App() {
     try {
       const fullPath = fileName;
       const res = await fetch(
-        `https://webeditor-ci8d.onrender.com/api/open-file?path=${encodeURIComponent(
-          fullPath
-        )}`
+        `${backendUrl}/api/open-file?path=${encodeURIComponent(fullPath)}`
       );
       const data = await res.json();
       if (data.content !== undefined) {
@@ -120,7 +120,7 @@ export default function App() {
   async function saveFile() {
     if (!currentFile) return;
     try {
-      const res = await fetch("https://webeditor-ci8d.onrender.com/api/save-file", {
+      const res = await fetch(`${backendUrl}/api/save-file`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function App() {
 
   function createTerminal() {
     const id = `term-${Date.now()}`;
-    const ws = new WebSocket(`wss://webeditor-ci8d.onrender.com/?id=${id}`);
+    const ws = new WebSocket(`${socketUrl}/?id=${id}`);
 
     const term = new Terminal({
       rows: 15,
@@ -157,52 +157,57 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-gray-900">
+    <div className="h-screen w-screen flex flex-col bg-[#ece9d8] text-black font-sans">
       {/* File Controls */}
-      <div className="flex p-2 border-b border-gray-700 items-center space-x-2">
-        <p
-          className="flex-1 p-1 rounded text-white"
+      <div className="flex p-2 border-b border-gray-400 items-center space-x-2 bg-[#245edc] shadow-md">
+        <input
+          className="flex-1 px-2 py-1 rounded-sm border border-gray-400 text-sm bg-white text-black focus:outline-none focus:ring-1 focus:ring-[#316ac5]"
           type="text"
           value={currentFile}
           onChange={(e) => setCurrentFile(e.target.value)}
+          readOnly
         />
         <button
-          className="px-2 py-1 bg-blue-600 rounded text-white"
+          className="px-3 py-1 bg-[#245edc] text-white font-semibold border border-[#123c8b] rounded-sm shadow hover:bg-[#316ac5] active:translate-y-[1px]"
           onClick={() => {
             saveFile();
           }}
         >
-          Save
+          💾 Save
         </button>
       </div>
+
       {/* Monaco Editor */}
-      <div ref={editorRef} className="flex-1" />
+      <div
+        ref={editorRef}
+        className="flex-1 border-b border-gray-400 bg-white"
+      />
 
       {/* Terminal Controls */}
-      <div className="flex items-center bg-gray-800 px-2 border-b border-gray-700">
+      <div className="flex items-center bg-[#ece9d8] px-2 border-b border-gray-400">
         {terminals.map((t, i) => (
           <button
             key={t.id}
             onClick={() => setActiveTerm(i)}
-            className={`px-3 py-1 rounded-t-md text-sm font-medium ${
+            className={`px-3 py-1 text-xs font-medium border border-gray-400 rounded-t-sm ${
               activeTerm === i
-                ? "bg-gray-900 text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
+                ? "bg-white text-black border-b-0"
+                : "bg-[#d4d0c8] text-gray-700 hover:bg-[#e5e1da]"
             }`}
           >
-            Term {i + 1}
+            🖥 Term {i + 1}
           </button>
         ))}
         <button
           onClick={createTerminal}
-          className="ml-2 px-2 py-1 text-green-400 hover:text-green-300"
+          className="ml-2 px-2 py-1 text-green-700 font-bold hover:text-green-900"
         >
           ➕
         </button>
       </div>
 
       {/* Active Terminal */}
-      <div className="h-60 bg-black rounded-b-md overflow-hidden relative">
+      <div className="h-60 bg-black text-green-400 font-mono rounded-b-sm overflow-hidden relative border-t border-gray-400">
         {terminals.map((t, i) => (
           <div
             key={t.id}

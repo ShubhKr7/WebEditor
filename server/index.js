@@ -6,6 +6,9 @@ import { createServer } from "http";
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 let shellCwd = "D:/WebProjects/WebEditor/server"; // initial cwd for shells
 const terminals = {}; // id -> shell process
@@ -15,7 +18,7 @@ const app = express();
 // Enable CORS for all origins (or specify your frontend origin)
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend URL
+    origin: process.env.FRONTEND_URL, // your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
