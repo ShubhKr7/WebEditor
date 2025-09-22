@@ -96,7 +96,7 @@ wss.on("connection", (ws, req) => {
   //   detached: true, // 👈 makes the shell its own process group
   // });
 
-  const shell = spawn("node", ["-e", command], { shell: true });
+  const shell = spawn("node", { stdio: "pipe" });
 
   terminals[termId] = shell;
 
