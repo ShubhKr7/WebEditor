@@ -14,8 +14,6 @@ RUN npm install
 # Copy the rest of your project
 COPY . .
 
-COPY .env ./
-
 # Expose port (Render sets this automatically via $PORT)
 EXPOSE 3001
 
