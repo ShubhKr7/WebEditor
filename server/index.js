@@ -89,12 +89,13 @@ wss.on("connection", (ws, req) => {
   
   console.log(`✅ Client connected to terminal: ${termId}`);
 
-  const shell = spawn("bash", ["-i"], {
+  const shell = spawn("sh", ["-i"], {
     cwd: shellCwd,
     env: process.env,
     stdio: "pipe",
     detached: true, // 👈 makes the shell its own process group
   });
+
   terminals[termId] = shell;
 
   // Pipe shell output
