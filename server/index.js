@@ -66,7 +66,19 @@ app.post("/api/save-file", (req, res) => {
 // ----------------------
 // WebSocket Terminal (Persistent bash -i)
 // ----------------------
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({
+  server,
+  verifyClient: (info, done) => {
+    const origin = info.origin;
+
+    if (origin === process.env.FRONTEND_URL) {
+      done(true); // allow
+    } else {
+      console.log("❌ Rejected connection from origin:", origin);
+      done(false, 401, "Unauthorized");
+    }
+  },
+});
 
 // wss.on("connection", (ws) => {
 //   console.log("✅ Client connected to terminal");
