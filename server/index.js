@@ -32,6 +32,13 @@ server.listen(PORT, () => {
   console.log(`🚀 Backend running at http://localhost:${PORT}`);
 });
 
+//----------------------
+//Test GET API
+//----------------------
+app.get('/' , (req,res) => {
+  res.status(200).send({msg: 'Backend server up'});
+});
+
 // ----------------------
 // File API for Monaco
 // ----------------------
