@@ -74,42 +74,15 @@ app.post("/api/save-file", (req, res) => {
 // ----------------------
 const wss = new WebSocketServer({ server });
 
-// wss.on("connection", (ws) => {
-//   console.log("✅ Client connected to terminal");
-
-//   // Persistent bash process
-//   const shell = spawn("bash", ["-i"], {
-//     cwd: process.cwd(),
-//     env: process.env,
-//     stdio: "pipe",
-//   });
-
-//   // Pipe stdout/stderr to frontend
-//   // shell.stdout.on("data", (data) => ws.send(data.toString()));
-//   // Whenever you want to know the current directory of the bash shell
-//   shell.stdin.write("pwd\n");
-
-//   shell.stdout.on("data", (data) => {
-//     const output = data.toString();
-//     console.log("Shell output:", output);
-//   });
-
-//   shell.stderr.on("data", (data) => ws.send(data.toString()));
-
-//   // Pipe frontend input to shell stdin
-//   ws.on("message", (msg) => {
-//     shell.stdin.write(msg.toString().trim() + "\n");
-//   });
-
-//   ws.on("close", () => {
-//     console.log("❌ Client disconnected");
-//     shell.kill();
-//   });
-
-//   ws.send("Welcome to persistent bash terminal\r\n$ ");
-// });
-
 wss.on("connection", (ws, req) => {
+    const origin = req.headers.origin;
+    if (origin !== process.env.FRONTEND_URL) {
+      console.log("❌ Blocked:", origin);
+    ws.close();
+    return;
+  }
+
+  console.log("✅ Allowed:", origin);
   const url = new URL(req.url, `http://${req.headers.host}`);
   const termId = url.searchParams.get("id") || `term-${Date.now()}`;
 
