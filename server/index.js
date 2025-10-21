@@ -10,7 +10,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-let shellCwd = "D:/WebProjects/WebEditor/server"; // initial cwd for shells
+let shellCwd = process.env.SHELL_CWD || process.cwd();
+// ensure folder exists on the host
+if (!fs.existsSync(shellCwd)) {
+  console.warn("shellCwd missing, falling back to process.cwd()");
+  shellCwd = process.cwd();
+}
+
 const terminals = {}; // id -> shell process
 
 const app = express();
@@ -27,9 +33,9 @@ app.use(express.json()); // for parsing JSON in POST requests
 const server = createServer(app);
 
 // Start HTTP + WS server
-const PORT = 3001;
-server.listen(PORT, () => {
-  console.log(`🚀 Backend running at http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Backend running at http://0.0.0.0:${PORT}`);
 });
 
 // ----------------------
@@ -106,15 +112,76 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const termId = url.searchParams.get("id") || `term-${Date.now()}`;
-  
+
   console.log(`✅ Client connected to terminal: ${termId}`);
 
-  const shell = spawn("bash", ["-i"], {
-    cwd: shellCwd,
-    env: process.env,
-    stdio: "pipe",
-    detached: true, // 👈 makes the shell its own process group
+  // === replace previous shell selection + spawn with this ===
+  let shellCommand = null;
+  let shellArgs = ["-i"];
+
+  // pick OS-appropriate shell & args
+  if (process.platform === "win32") {
+    // prefer PowerShell, fallback to cmd
+    if (
+      fs.existsSync(
+        process.env.COMSPEC ||
+          "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      )
+    ) {
+      shellCommand = process.env.COMSPEC || "powershell.exe";
+      // if using cmd.exe, /K keeps it interactive; for powershell use -NoExit -Command -
+      if (shellCommand.toLowerCase().includes("cmd.exe")) shellArgs = ["/K"];
+      else shellArgs = ["-NoExit", "-Command", "-"];
+    } else {
+      shellCommand = "cmd.exe";
+      shellArgs = ["/K"];
+    }
+  } else {
+    // unix-like
+    if (fs.existsSync("/bin/bash")) shellCommand = "/bin/bash";
+    else if (fs.existsSync("/usr/bin/bash")) shellCommand = "/usr/bin/bash";
+    else if (fs.existsSync("/bin/sh")) shellCommand = "/bin/sh";
+    else if (process.env.SHELL) shellCommand = process.env.SHELL;
+  }
+
+  if (!shellCommand) {
+    console.error("No shell found on the host. Closing ws.");
+    try {
+      ws.send("Server error: no shell available");
+    } catch {}
+    ws.close();
+    return;
+  }
+
+  let shell;
+  try {
+    shell = spawn(shellCommand, shellArgs, {
+      cwd: shellCwd,
+      env: process.env,
+      stdio: "pipe",
+      // do not use detached on Windows; keep default
+      detached: process.platform === "win32" ? false : true,
+    });
+  } catch (err) {
+    console.error("spawn failed:", err);
+    try {
+      ws.send("Server error: unable to start shell\r\n");
+    } catch {}
+    ws.close();
+    return;
+  }
+
+  // prevent uncaught spawn errors from crashing the process
+  shell.on("error", (err) => {
+    console.error("Shell process error:", err);
+    try {
+      ws.send("Server error: shell failed to start\r\n");
+    } catch {}
+    try {
+      ws.close();
+    } catch {}
   });
+
   terminals[termId] = shell;
 
   // Pipe shell output
@@ -152,5 +219,5 @@ wss.on("connection", (ws, req) => {
 
   ws.on("close", () => shell.kill());
 
-   ws.send(`Welcome to terminal "${termId}"\r\n$ `);
+  ws.send(`Welcome to terminal "${termId}"\r\n$ `);
 });
